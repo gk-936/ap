@@ -1,0 +1,40 @@
+{
+  "vulnerabilities": [
+    {
+      "type": "Sensitive File Exposure",
+      "url": "127.0.0.1:5000/.env",
+      "description": "Sensitive file accessible: /.env",
+      "severity": "High",
+      "timestamp": "2025-09-07 21:36:41"
+    },
+    {
+      "type": "Sensitive File Exposure",
+      "url": "127.0.0.1:5000/config.php",
+      "description": "Sensitive file accessible: /config.php",
+      "severity": "High",
+      "timestamp": "2025-09-07 21:36:41"
+    },
+    {
+      "type": "Sensitive File Exposure",
+      "url": "127.0.0.1:5000/wp-config.php",
+      "description": "Sensitive file accessible: /wp-config.php",
+      "severity": "High",
+      "timestamp": "2025-09-07 21:36:41"
+    },
+    {
+      "type": "Sensitive File Exposure",
+      "url": "127.0.0.1:5000/database.yml",
+      "description": "Sensitive file accessible: /database.yml",
+      "severity": "High",
+      "timestamp": "2025-09-07 21:36:41"
+    },
+    {
+      "type": "Sensitive File Exposure",
+      "url": "127.0.0.1:5000/.git/config",
+      "description": "Sensitive file accessible: /.git/config",
+      "severity": "High",
+      "timestamp": "2025-09-07 21:36:41"
+    }
+  ],
+  "total_count": 5
+}
