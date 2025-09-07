@@ -1,5 +1,0 @@
-http://testphp.vulnweb.com/
-http://demo.testfire.net/
-http://zero.webappsecurity.com/
-http://httpbin.org/
-https://jsonplaceholder.typicode.com/
