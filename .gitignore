@@ -72,7 +72,3 @@ dist/
 .env.local
 .env.production
 .env.development
-
-# Package lock files (optional)
-package-lock.json
-yarn.lock
