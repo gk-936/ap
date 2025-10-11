@@ -1,0 +1,27 @@
+{
+  "scan_results": [
+    {
+      "type": "Sensitive File Exposure",
+      "url": "http://testphp.vulnweb.com//admin/",
+      "description": "Sensitive file found: /admin/",
+      "severity": "High",
+      "timestamp": "Sun Sep 14 19:32:05 2025"
+    },
+    {
+      "type": "Credential Detection",
+      "url": "http://testphp.vulnweb.com/",
+      "description": "Found potential credential: user",
+      "severity": "Medium",
+      "timestamp": "Sun Sep 14 19:31:22 2025"
+    },
+    {
+      "type": "Credential Detection",
+      "url": "http://testphp.vulnweb.com/",
+      "description": "Found potential credential: login",
+      "severity": "Medium",
+      "timestamp": "Sun Sep 14 19:31:22 2025"
+    }
+  ],
+  "total_vulnerabilities": 3,
+  "scan_timestamp": "1757858533"
+}
