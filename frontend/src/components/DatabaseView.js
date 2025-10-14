@@ -18,6 +18,7 @@ function DatabaseView() {
       setDbData(data);
     } catch (error) {
       console.error('Error fetching database:', error);
+      setDbData({ stats: { total_scans: 0, total_vulnerabilities: 0, high_severity: 0 }, scans: [] });
     } finally {
       setLoading(false);
     }
@@ -84,26 +85,26 @@ function DatabaseView() {
           Database Overview
         </h2>
 
-        {dbData && (
+        {dbData && dbData.stats && (
           <>
             <div className="grid grid-cols-3" style={{ marginBottom: '32px' }}>
               <div className="stat-card">
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#667eea' }}>
-                  {dbData.stats.total_scans}
+                  {dbData.stats.total_scans || 0}
                 </div>
                 <div style={{ fontSize: '14px', color: '#6c757d' }}>Total Scans</div>
               </div>
               
               <div className="stat-card">
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#fd7e14' }}>
-                  {dbData.stats.total_vulnerabilities}
+                  {dbData.stats.total_vulnerabilities || 0}
                 </div>
                 <div style={{ fontSize: '14px', color: '#6c757d' }}>Total Vulnerabilities</div>
               </div>
               
               <div className="stat-card">
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#dc3545' }}>
-                  {dbData.stats.high_severity}
+                  {dbData.stats.high_severity || 0}
                 </div>
                 <div style={{ fontSize: '14px', color: '#6c757d' }}>High Severity</div>
               </div>
@@ -127,7 +128,7 @@ function DatabaseView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dbData.scans.map((scan) => (
+                  {(dbData.scans || []).map((scan) => (
                     <tr key={scan.id} style={{ borderBottom: '1px solid #e9ecef' }}>
                       <td style={{ padding: '12px' }}>{scan.id}</td>
                       <td style={{ padding: '12px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>

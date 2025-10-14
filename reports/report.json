@@ -1,0 +1,13 @@
+{
+  "scan_results": [
+    {
+      "type": "Sensitive File Exposure",
+      "url": "http://testasp.vulnweb.com/robots.txt",
+      "description": "Sensitive file found: /robots.txt",
+      "severity": "High",
+      "timestamp": "Tue Oct 14 10:37:16 2025"
+    }
+  ],
+  "total_vulnerabilities": 1,
+  "scan_timestamp": "1760418465"
+}

@@ -6,15 +6,52 @@ The C++ scanner acts as the actual backend, Python just facilitates communicatio
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from functools import wraps
 import subprocess
 import json
 import os
 import sqlite3
+import traceback
+import time
 
 app = Flask(__name__)
 CORS(app)
 
+def handle_errors(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except sqlite3.Error as e:
+            app.logger.error(f"Database error: {str(e)}\n{traceback.format_exc()}")
+            return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+        except subprocess.TimeoutExpired:
+            app.logger.error("Scanner process timeout")
+            return jsonify({'error': 'Scan timeout'}), 408
+        except Exception as e:
+            app.logger.error(f"Unexpected error: {str(e)}\n{traceback.format_exc()}")
+            return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+    return wrapper
+
+@app.route('/api/status', methods=['GET'])
+@handle_errors
+def get_status():
+    """Check API and scanner status"""
+    # Check database connection
+    try:
+        conn = sqlite3.connect('backend/vulnerabilities.db')
+        conn.close()
+    except sqlite3.Error:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+        
+    # Check scanner executable
+    if not os.path.exists('./backend/vulnerability_scanner'):
+        return jsonify({'status': 'error', 'message': 'Scanner executable not found'}), 500
+    
+    return jsonify({'status': 'ok'})
+
 @app.route('/api/scan', methods=['POST'])
+@handle_errors
 def scan_url():
     """Proxy scan requests to C++ backend"""
     data = request.get_json()
@@ -153,6 +190,52 @@ def get_database_overview():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/trends', methods=['GET'])
+def get_vulnerability_trends():
+    """Get vulnerability trends over time from database"""
+    try:
+        conn = sqlite3.connect('backend/vulnerabilities.db')
+        cursor = conn.cursor()
+        
+        # Get vulnerability counts by severity for each scan
+        cursor.execute("""
+            SELECT s.scan_time,
+                   COUNT(CASE WHEN v.severity = 'High' THEN 1 END) as high,
+                   COUNT(CASE WHEN v.severity = 'Medium' THEN 1 END) as medium,
+                   COUNT(CASE WHEN v.severity = 'Low' THEN 1 END) as low
+            FROM scans s LEFT JOIN vulnerabilities v ON s.id = v.scan_id 
+            GROUP BY s.id, s.scan_time 
+            ORDER BY s.scan_time ASC
+            LIMIT 20
+        """)
+        
+        trends = []
+        for row in cursor.fetchall():
+            trends.append({
+                'scan_time': row[0],
+                'high': row[1],
+                'medium': row[2],
+                'low': row[3]
+            })
+        
+        conn.close()
+        return jsonify({'trends': trends})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/progress', methods=['GET'])
+def get_scan_progress():
+    """Get real-time scan progress"""
+    try:
+        if os.path.exists('backend/scan_progress.json'):
+            with open('backend/scan_progress.json', 'r') as f:
+                return jsonify(json.load(f))
+        else:
+            return jsonify({'progress': 0, 'scanner': 'No scan running', 'total': 6})
+    except Exception as e:
+        return jsonify({'progress': 0, 'scanner': 'Error reading progress', 'total': 6})
 
 if __name__ == '__main__':
     print("Starting Python proxy server...")

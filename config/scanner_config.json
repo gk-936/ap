@@ -1,0 +1,11 @@
+{
+    "allowed_schemes": ["http", "https"],
+    "blocked_hosts": ["localhost", "127.0.0.1", "0.0.0.0", "169.254.169.254"],
+    "sql_payloads": ["' OR '1'='1", "1; DROP TABLE users"],
+    "xss_payloads": ["<script>alert(1)</script>", "<img src=x onerror=alert(1)>"],
+    "cmd_injection_payloads": ["; ls -la", "| cat /etc/passwd"],
+    "timeout_seconds": 30,
+    "max_redirects": 5,
+    "max_depth": 3,
+    "user_agent": "SecurityScanner/1.0"
+}

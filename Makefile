@@ -2,8 +2,10 @@
 
 # Compiler settings
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -pthread
-LIBS = -lcurl -lsqlite3 -lpthread
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+CURL_FLAGS = $(shell pkg-config --cflags --libs libcurl)
+SQLITE_FLAGS = $(shell pkg-config --libs sqlite3)
+LIBS = $(CURL_FLAGS) $(SQLITE_FLAGS) -lpthread
 
 # Directories
 SRC_DIR = src
@@ -19,8 +21,8 @@ all: $(TARGET)
 
 # Build the scanner
 $(TARGET): $(SOURCE)
-	@mkdir -p $(BACKEND_DIR)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCE) $(LIBS)
+	@mkdir -p $(BACKEND_DIR) logs reports config
+	$(CXX) $(CXXFLAGS) $(SOURCE) $(LIBS) -o $(TARGET)
 	@echo "✅ Vulnerability scanner built successfully"
 
 # Clean build artifacts

@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Shield, Search, History, Database, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Shield, Search, History, Database, AlertTriangle, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ScanResults from './components/ScanResults';
 import ScanHistory from './components/ScanHistory';
 import DatabaseView from './components/DatabaseView';
+import VulnerabilityTrends from './components/VulnerabilityTrends';
 
 function App() {
   const [activeTab, setActiveTab] = useState('scan');
   const [scanResults, setScanResults] = useState(null);
   const [scanHistory, setScanHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentScanner, setCurrentScanner] = useState('');
 
   useEffect(() => {
     fetchScanHistory();
@@ -27,16 +30,43 @@ function App() {
 
   const handleScan = async (url) => {
     setLoading(true);
+    setProgress(0);
+    setCurrentScanner('');
+    
+    // Start real-time progress tracking
+    const progressInterval = setInterval(async () => {
+      try {
+        const response = await axios.get('/api/progress');
+        const { progress: currentProgress, scanner, total } = response.data;
+        const percentage = (currentProgress / total) * 100;
+        setProgress(percentage);
+        setCurrentScanner(scanner);
+      } catch (error) {
+        console.error('Error fetching progress:', error);
+      }
+    }, 500);
+    
     try {
       const response = await axios.post('/api/scan', { url });
-      setScanResults(response.data);
-      setActiveTab('results');
-      fetchScanHistory(); // Refresh history
+      clearInterval(progressInterval);
+      setProgress(100);
+      setCurrentScanner('Scan Complete');
+      
+      setTimeout(() => {
+        setScanResults(response.data);
+        setActiveTab('results');
+        fetchScanHistory();
+      }, 500);
     } catch (error) {
+      clearInterval(progressInterval);
       console.error('Error scanning URL:', error);
       alert('Error scanning URL: ' + (error.response?.data?.error || error.message));
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+        setCurrentScanner('');
+      }, 1000);
     }
   };
 
@@ -91,13 +121,47 @@ function App() {
             <Database size={16} style={{ marginRight: '8px' }} />
             Database
           </button>
+          <button
+            className={`btn ${activeTab === 'trends' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveTab('trends')}
+          >
+            <TrendingUp size={16} style={{ marginRight: '8px' }} />
+            Trends
+          </button>
         </nav>
       </header>
 
       {loading && (
-        <div className="card loading">
-          <div className="spinner"></div>
-          <p style={{ marginLeft: '16px' }}>Scanning in progress...</p>
+        <div className="card">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <h3 style={{ marginBottom: '20px', color: '#667eea' }}>Scanning in Progress</h3>
+            
+            <div style={{ 
+              width: '100%', 
+              backgroundColor: '#e9ecef', 
+              borderRadius: '10px', 
+              overflow: 'hidden',
+              marginBottom: '16px'
+            }}>
+              <div style={{
+                width: `${progress}%`,
+                height: '20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '10px',
+                transition: 'width 0.3s ease'
+              }}></div>
+            </div>
+            
+            <p style={{ color: '#6c757d', fontSize: '14px', marginBottom: '8px' }}>
+              {Math.round(progress)}% Complete
+            </p>
+            
+            {currentScanner && (
+              <p style={{ color: '#495057', fontWeight: '500' }}>
+                Running: {currentScanner}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -115,6 +179,10 @@ function App() {
 
       {activeTab === 'database' && (
         <DatabaseView />
+      )}
+
+      {activeTab === 'trends' && (
+        <VulnerabilityTrends />
       )}
     </div>
   );
